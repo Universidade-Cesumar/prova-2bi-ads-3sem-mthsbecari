@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Almoxarifado — Enfermagem</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -12,7 +12,9 @@
     <div class="header-inner">
       <div>
         <h1>Almoxarifado</h1>
-        <p class="header-sub">Controle de Materiais — Enfermagem</p>
+        <p class="header-sub">
+          Controle de Materiais — Enfermagem
+        </p>
       </div>
     </div>
   </header>
@@ -21,56 +23,86 @@
 
     <section class="card form-card">
       <h2>Cadastrar Material</h2>
+
       <div class="form-row">
+
         <div class="field">
-          <label for="input-nome">Nome do Material</label>
+          <label for="input-nome">
+            Nome do Material
+          </label>
+
           <input
             type="text"
             id="input-nome"
             placeholder="Ex: Seringa 10ml, Gaze, Luva..."
             autocomplete="off"
-          />
+          >
         </div>
+
         <div class="field field-qty">
-          <label for="input-quantidade">Quantidade</label>
+          <label for="input-quantidade">
+            Quantidade
+          </label>
+
           <input
             type="number"
             id="input-quantidade"
             placeholder="0"
             min="0"
-          />
+          >
         </div>
+
       </div>
-      <button id="btn-cadastrar">+ Cadastrar</button>
+
+      <button id="btn-cadastrar">
+        + Cadastrar
+      </button>
+
       <p id="msg-feedback" class="feedback hidden"></p>
+
     </section>
 
     <section class="card list-card">
+
       <div class="list-header">
         <h2>Materiais em Estoque</h2>
-        <span id="badge-total" class="badge">0 itens</span>
+        <span id="badge-total" class="badge">
+          0 itens
+        </span>
       </div>
 
-      <div id="loading" class="loading">Carregando materiais...</div>
+      <div id="loading" class="loading">
+        Carregando materiais...
+      </div>
 
       <table id="lista-materiais">
+
         <thead>
           <tr>
             <th>#</th>
             <th>Nome do Material</th>
             <th>Quantidade</th>
             <th>Status</th>
+            <th>Retirada</th>
+            <th>Ações</th>
           </tr>
         </thead>
+
         <tbody id="tbody-materiais">
+          <!-- Preenchido via JavaScript -->
         </tbody>
+
       </table>
 
-      <p id="empty-state" class="empty hidden">Nenhum material cadastrado ainda.</p>
+      <p id="empty-state" class="empty hidden">
+        Nenhum material cadastrado ainda.
+      </p>
+
     </section>
 
   </main>
 
   <script src="main.js"></script>
+
 </body>
 </html>
