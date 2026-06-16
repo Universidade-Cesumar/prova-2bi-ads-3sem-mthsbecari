@@ -70,7 +70,7 @@ main {
 
 .form-row {
     display: grid;
-    grid-template-columns: 2fr 1fr auto;
+    grid-template-columns: 2fr 1fr;
     gap: 15px;
     align-items: end;
 }
@@ -78,6 +78,10 @@ main {
 .field {
     display: flex;
     flex-direction: column;
+}
+
+.field-qty {
+    max-width: 180px;
 }
 
 label {
@@ -101,6 +105,7 @@ input:focus {
 }
 
 #btn-cadastrar {
+    margin-top: 18px;
     height: 45px;
     padding: 0 24px;
     border: none;
@@ -187,6 +192,7 @@ input:focus {
 #lista-materiais td {
     padding: 14px;
     border-bottom: 1px solid #ececec;
+    vertical-align: middle;
 }
 
 #lista-materiais tbody tr:hover {
@@ -215,6 +221,47 @@ input:focus {
     color: var(--danger);
 }
 
+/* NOVOS ELEMENTOS */
+
+#input-retirada {
+    width: 70px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    text-align: center;
+}
+
+.btn-baixar,
+.btn-excluir {
+    border: none;
+    border-radius: 20px;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: white;
+    font-size: 0.85rem;
+    margin: 2px;
+}
+
+.btn-baixar {
+    background: var(--primary);
+}
+
+.btn-baixar:hover {
+    background: var(--primary-dark);
+}
+
+.btn-excluir {
+    background: var(--danger);
+}
+
+.btn-excluir:hover {
+    opacity: 0.9;
+}
+
+#lista-materiais td:last-child {
+    white-space: nowrap;
+}
+
 @media (max-width: 768px) {
     .form-row {
         grid-template-columns: 1fr;
@@ -226,5 +273,16 @@ input:focus {
 
     .card {
         padding: 20px;
+    }
+
+    #input-retirada {
+        width: 60px;
+    }
+
+    .btn-baixar,
+    .btn-excluir {
+        display: block;
+        width: 100%;
+        margin: 4px 0;
     }
 }
