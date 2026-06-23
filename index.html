@@ -67,9 +67,28 @@
       <div class="list-header">
         <h2>Materiais em Estoque</h2>
         <span id="badge-total" class="badge">
-          0 itens
+          <span id="total-itens">0</span> itens
         </span>
       </div>
+
+      <div class="search-row">
+        <div class="field field-busca">
+          <label for="input-busca">
+            Pesquisar Material
+          </label>
+
+          <input
+            type="text"
+            id="input-busca"
+            placeholder="Digite o nome do material..."
+            autocomplete="off"
+          >
+        </div>
+      </div>
+
+      <p id="msg-erro-rede" class="feedback erro hidden">
+        Sem conexão com o servidor. Verifique sua internet e tente novamente.
+      </p>
 
       <div id="loading" class="loading">
         Carregando materiais...
@@ -89,13 +108,16 @@
         </thead>
 
         <tbody id="tbody-materiais">
-          <!-- Preenchido via JavaScript -->
         </tbody>
 
       </table>
 
       <p id="empty-state" class="empty hidden">
         Nenhum material cadastrado ainda.
+      </p>
+
+      <p id="empty-busca" class="empty hidden">
+        Nenhum material encontrado para esta pesquisa.
       </p>
 
     </section>
