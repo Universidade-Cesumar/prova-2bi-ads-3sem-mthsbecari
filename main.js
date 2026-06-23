@@ -6,8 +6,16 @@ const btnCadastrar = document.getElementById('btn-cadastrar');
 const tbody = document.getElementById('tbody-materiais');
 const loading = document.getElementById('loading');
 const emptyState = document.getElementById('empty-state');
+const emptyBusca = document.getElementById('empty-busca');
 const badgeTotal = document.getElementById('badge-total');
+const totalItens = document.getElementById('total-itens');
 const msgFeedback = document.getElementById('msg-feedback');
+const inputBusca = document.getElementById('input-busca');
+const msgErroRede = document.getElementById('msg-erro-rede');
+
+const LIMITE_ESTOQUE_CRITICO = 10;
+
+let materiaisCache = [];
 
 function showFeedback(texto, tipo = 'ok') {
   msgFeedback.textContent = texto;
@@ -16,6 +24,21 @@ function showFeedback(texto, tipo = 'ok') {
   setTimeout(() => {
     msgFeedback.className = 'feedback hidden';
   }, 3000);
+}
+
+function mostrarErroRede(mostrar) {
+  if (mostrar) {
+    msgErroRede.classList.remove('hidden');
+  } else {
+    msgErroRede.classList.add('hidden');
+  }
+}
+
+function isErroDeConexao(err) {
+  return (
+    err instanceof TypeError ||
+    !navigator.onLine
+  );
 }
 
 function statusLabel(qtd) {
@@ -32,7 +55,6 @@ function statusLabel(qtd) {
   return '<span class="tag tag-ok">OK</span>';
 }
 
-/* FUNÇÃO OBRIGATÓRIA DA PROVA */
 function validarRetirada(estoqueAtual, quantidadeRetirada) {
   return (
     quantidadeRetirada > 0 &&
@@ -42,16 +64,27 @@ function validarRetirada(estoqueAtual, quantidadeRetirada) {
 
 async function excluirMaterial(id) {
   try {
-    await fetch(`${API_URL}/${id}`, {
+    const res = await fetch(`${API_URL}/${id}`, {
       method: 'DELETE'
     });
 
+    if (!res.ok) {
+      throw new Error('Erro no servidor ao excluir.');
+    }
+
     showFeedback('Material excluído com sucesso!', 'ok');
+    mostrarErroRede(false);
     carregarMateriais();
 
   } catch (err) {
     console.error(err);
-    showFeedback('Erro ao excluir material.', 'erro');
+
+    if (isErroDeConexao(err)) {
+      mostrarErroRede(true);
+      showFeedback('Sem conexão com a internet.', 'erro');
+    } else {
+      showFeedback('Erro ao excluir material.', 'erro');
+    }
   }
 }
 
@@ -68,7 +101,7 @@ async function baixarMaterial(id, estoqueAtual, quantidadeRetirada) {
   const novaQuantidade = estoqueAtual - quantidadeRetirada;
 
   try {
-    await fetch(`${API_URL}/${id}`, {
+    const res = await fetch(`${API_URL}/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
@@ -78,123 +111,192 @@ async function baixarMaterial(id, estoqueAtual, quantidadeRetirada) {
       })
     });
 
+    if (!res.ok) {
+      throw new Error('Erro no servidor ao atualizar estoque.');
+    }
+
     showFeedback('Baixa realizada com sucesso!', 'ok');
+    mostrarErroRede(false);
     carregarMateriais();
 
   } catch (err) {
     console.error(err);
-    showFeedback('Erro ao atualizar estoque.', 'erro');
+
+    if (isErroDeConexao(err)) {
+      mostrarErroRede(true);
+      showFeedback('Sem conexão com a internet.', 'erro');
+    } else {
+      showFeedback('Erro ao atualizar estoque.', 'erro');
+    }
   }
+}
+
+function renderizarMateriais(lista) {
+
+  tbody.innerHTML = '';
+
+  totalItens.textContent = lista.length;
+
+  const termoBusca = inputBusca.value.trim();
+
+  if (materiaisCache.length === 0) {
+    emptyState.classList.remove('hidden');
+    emptyBusca.classList.add('hidden');
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+
+  if (lista.length === 0 && termoBusca !== '') {
+    emptyBusca.classList.remove('hidden');
+    return;
+  }
+
+  emptyBusca.classList.add('hidden');
+
+  lista.forEach((item, index) => {
+
+    const tr = document.createElement('tr');
+
+    const qtdNumerica = parseInt(item.quantidade, 10);
+
+    if (!isNaN(qtdNumerica) && qtdNumerica < LIMITE_ESTOQUE_CRITICO) {
+      tr.classList.add('estoque-critico');
+    }
+
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+
+      <td>${item.nome}</td>
+
+      <td>
+        <strong>${item.quantidade}</strong>
+      </td>
+
+      <td>
+        ${statusLabel(item.quantidade)}
+      </td>
+
+      <td>
+        <input
+          type="number"
+          id="input-retirada"
+          min="1"
+          placeholder="Qtd"
+          style="width:70px"
+        >
+      </td>
+
+      <td>
+        <button class="btn-baixar">
+          Baixar
+        </button>
+
+        <button class="btn-excluir">
+          Excluir
+        </button>
+      </td>
+    `;
+
+    const inputRetirada =
+      tr.querySelector('#input-retirada');
+
+    const btnBaixar =
+      tr.querySelector('.btn-baixar');
+
+    const btnExcluir =
+      tr.querySelector('.btn-excluir');
+
+    btnBaixar.addEventListener('click', () => {
+
+      const retirada =
+        parseInt(inputRetirada.value, 10);
+
+      if (isNaN(retirada)) {
+        showFeedback(
+          'Informe uma quantidade para retirada.',
+          'erro'
+        );
+        return;
+      }
+
+      baixarMaterial(
+        item.id,
+        parseInt(item.quantidade, 10),
+        retirada
+      );
+    });
+
+    btnExcluir.addEventListener('click', () => {
+
+      const confirmar = confirm(
+        `Excluir "${item.nome}"?`
+      );
+
+      if (confirmar) {
+        excluirMaterial(item.id);
+      }
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function filtrarMateriais() {
+  const termo = inputBusca.value.trim().toLowerCase();
+
+  const listaFiltrada = termo === ''
+    ? materiaisCache
+    : materiaisCache.filter((item) =>
+        item.nome.toLowerCase().includes(termo)
+      );
+
+  renderizarMateriais(listaFiltrada);
 }
 
 async function carregarMateriais() {
 
   loading.style.display = 'block';
+  loading.textContent = 'Carregando materiais...';
   tbody.innerHTML = '';
   emptyState.classList.add('hidden');
+  emptyBusca.classList.add('hidden');
 
   try {
 
     const res = await fetch(API_URL);
-    const data = await res.json();
 
-    loading.style.display = 'none';
-
-    badgeTotal.textContent =
-      `${data.length} ${data.length === 1 ? 'item' : 'itens'}`;
-
-    if (data.length === 0) {
-      emptyState.classList.remove('hidden');
-      return;
+    if (!res.ok) {
+      throw new Error('Erro no servidor ao carregar materiais.');
     }
 
-    data.forEach((item, index) => {
+    const data = await res.json();
 
-      const tr = document.createElement('tr');
+    materiaisCache = data;
 
-      tr.innerHTML = `
-        <td>${index + 1}</td>
+    loading.style.display = 'none';
+    mostrarErroRede(false);
 
-        <td>${item.nome}</td>
-
-        <td>
-          <strong>${item.quantidade}</strong>
-        </td>
-
-        <td>
-          ${statusLabel(item.quantidade)}
-        </td>
-
-        <td>
-          <input
-            type="number"
-            id="input-retirada"
-            min="1"
-            placeholder="Qtd"
-            style="width:70px"
-          >
-        </td>
-
-        <td>
-          <button class="btn-baixar">
-            Baixar
-          </button>
-
-          <button class="btn-excluir">
-            Excluir
-          </button>
-        </td>
-      `;
-
-      const inputRetirada =
-        tr.querySelector('#input-retirada');
-
-      const btnBaixar =
-        tr.querySelector('.btn-baixar');
-
-      const btnExcluir =
-        tr.querySelector('.btn-excluir');
-
-      btnBaixar.addEventListener('click', () => {
-
-        const retirada =
-          parseInt(inputRetirada.value, 10);
-
-        if (isNaN(retirada)) {
-          showFeedback(
-            'Informe uma quantidade para retirada.',
-            'erro'
-          );
-          return;
-        }
-
-        baixarMaterial(
-          item.id,
-          parseInt(item.quantidade, 10),
-          retirada
-        );
-      });
-
-      btnExcluir.addEventListener('click', () => {
-
-        const confirmar = confirm(
-          `Excluir "${item.nome}"?`
-        );
-
-        if (confirmar) {
-          excluirMaterial(item.id);
-        }
-      });
-
-      tbody.appendChild(tr);
-    });
+    filtrarMateriais();
 
   } catch (err) {
 
     loading.style.display = 'none';
-    loading.textContent = 'Erro ao carregar materiais.';
-
     console.error(err);
+
+    materiaisCache = [];
+    totalItens.textContent = '0';
+
+    if (isErroDeConexao(err)) {
+      mostrarErroRede(true);
+      loading.style.display = 'block';
+      loading.textContent =
+        'Sem conexão com a internet. Verifique sua rede e tente novamente.';
+    } else {
+      showFeedback('Erro ao carregar materiais.', 'erro');
+      loading.style.display = 'block';
+      loading.textContent = 'Erro ao carregar materiais.';
+    }
   }
 }
 
@@ -245,10 +347,15 @@ async function cadastrarMaterial() {
 
     console.error(err);
 
-    showFeedback(
-      'Falha ao cadastrar material.',
-      'erro'
-    );
+    if (isErroDeConexao(err)) {
+      mostrarErroRede(true);
+      showFeedback('Sem conexão com a internet.', 'erro');
+    } else {
+      showFeedback(
+        'Falha ao cadastrar material.',
+        'erro'
+      );
+    }
 
   } finally {
 
@@ -267,5 +374,7 @@ inputQtd.addEventListener('keydown', (e) => {
     cadastrarMaterial();
   }
 });
+
+inputBusca.addEventListener('input', filtrarMateriais);
 
 carregarMateriais();
