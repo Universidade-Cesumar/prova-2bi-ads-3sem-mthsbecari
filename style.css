@@ -221,7 +221,6 @@ input:focus {
     color: var(--danger);
 }
 
-/* NOVOS ELEMENTOS */
 
 #input-retirada {
     width: 70px;
@@ -262,6 +261,34 @@ input:focus {
     white-space: nowrap;
 }
 
+.search-row {
+    margin-bottom: 18px;
+}
+
+.field-busca {
+    max-width: 320px;
+}
+
+#input-busca {
+    width: 100%;
+}
+
+#msg-erro-rede {
+    margin-bottom: 15px;
+}
+
+tr.estoque-critico {
+    background: #fff5f5;
+}
+
+tr.estoque-critico:hover {
+    background: #ffe9e9;
+}
+
+tr.estoque-critico td:first-child {
+    border-left: 4px solid var(--danger);
+}
+
 @media (max-width: 768px) {
     .form-row {
         grid-template-columns: 1fr;
@@ -284,5 +311,9 @@ input:focus {
         display: block;
         width: 100%;
         margin: 4px 0;
+    }
+
+    .field-busca {
+        max-width: 100%;
     }
 }
